@@ -5,13 +5,14 @@ import { fonts } from "../utils/fonts";
 // Define our theme
 export const theme = {
   colors: {
-    primary: "#4F86E7",
-    secondary: "#97B4F0",
+    primary: "#224D11",
+    secondary: "#88B377",
     background: "#F9FAFC",
-    text: "#333333",
+    text: "#1C330C",
     textLight: "#666666",
     border: "#E1E8F0",
-    success: "#4CAF50",
+    card: "#FFFFFF",
+    success: "#4BB543",
     error: "#FF3333",
   },
   fonts,

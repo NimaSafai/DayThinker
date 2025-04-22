@@ -1,13 +1,22 @@
 import React from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Book, Plus, Settings } from "lucide-react-native";
+import { Album, Plus, Settings } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../context/StyleContext";
 
 const AddButton = ({ onPress }: { onPress: () => void }) => {
+  const { colors } = useTheme();
+
   return (
     <TouchableOpacity
-      style={styles.addButton}
+      style={[
+        styles.addButton,
+        {
+          backgroundColor: colors.primary,
+          shadowColor: colors.primary,
+        },
+      ]}
       onPress={onPress}
       activeOpacity={0.8}
     >
@@ -23,10 +32,11 @@ const CustomTabBar = ({
 }: BottomTabBarProps) => {
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(insets.bottom, 10);
+  const { colors } = useTheme();
 
   return (
     <View style={[styles.tabBarContainer, { paddingBottom: bottomPadding }]}>
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { backgroundColor: colors.card }]}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
@@ -55,7 +65,7 @@ const CustomTabBar = ({
 
           let Icon;
           if (index === 0) {
-            Icon = Book;
+            Icon = Album;
           } else {
             Icon = Settings;
           }
@@ -69,7 +79,10 @@ const CustomTabBar = ({
               onPress={onPress}
               style={styles.tabButton}
             >
-              <Icon size={24} color={isFocused ? "#4F86E7" : "#AAAAAA"} />
+              <Icon
+                size={24}
+                color={isFocused ? colors.primary : colors.textLight}
+              />
             </TouchableOpacity>
           );
         })}
@@ -115,14 +128,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addButton: {
-    backgroundColor: "#4F86E7",
+    backgroundColor: "#4F86E7", // This will be overridden by the inline style
     width: 56,
     height: 56,
     borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
     bottom: 25,
-    shadowColor: "#4F86E7",
+    shadowColor: "#000", // Will update this in the component
     shadowOffset: {
       width: 0,
       height: 4,

@@ -28,9 +28,11 @@ import {
   Calendar,
   Database,
 } from "lucide-react-native";
+import { useTheme } from "../../context/StyleContext";
 
 const Settings = () => {
   const { user, signOut } = useAuth();
+  const { colors } = useTheme();
   const [settings, setSettings] = useState<Partial<UserSettings>>({
     daily_reminders: false,
     reminder_time: new Date().toISOString(),
@@ -228,33 +230,39 @@ const Settings = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
       </View>
 
       <ScrollView style={styles.scrollContainer}>
         {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+          <View style={[styles.errorContainer, { backgroundColor: "#FFEEEE" }]}>
+            <Text style={[styles.errorText, { color: colors.error }]}>
+              {error}
+            </Text>
           </View>
         )}
 
         {/* Reminders Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Reminders</Text>
+        <View style={[styles.section, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Reminders
+          </Text>
 
           <View style={styles.settingRow}>
             <View style={styles.settingLabelContainer}>
-              <Bell color="#4F86E7" size={20} />
-              <Text style={styles.settingLabel}>Daily Reminders</Text>
+              <Bell color={colors.primary} size={20} />
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Daily Reminders
+              </Text>
             </View>
             <Switch
               value={settings.daily_reminders}
               onValueChange={(value) =>
                 handleToggleSetting("daily_reminders", value)
               }
-              trackColor={{ false: "#E1E8F0", true: "#97B4F0" }}
-              thumbColor={settings.daily_reminders ? "#4F86E7" : "#FFFFFF"}
+              trackColor={{ false: "#E1E8F0", true: colors.secondary }}
+              thumbColor={settings.daily_reminders ? colors.primary : "#FFFFFF"}
             />
           </View>
 
@@ -264,10 +272,12 @@ const Settings = () => {
               onPress={() => setShowTimePicker(true)}
             >
               <View style={styles.settingLabelContainer}>
-                <Clock color="#4F86E7" size={20} />
-                <Text style={styles.settingLabel}>Reminder Time</Text>
+                <Clock color={colors.primary} size={20} />
+                <Text style={[styles.settingLabel, { color: colors.text }]}>
+                  Reminder Time
+                </Text>
               </View>
-              <Text style={styles.timeText}>
+              <Text style={[styles.timeText, { color: colors.primary }]}>
                 {formatTime(settings.reminder_time || new Date().toISOString())}
               </Text>
             </TouchableOpacity>
@@ -275,92 +285,123 @@ const Settings = () => {
 
           <View style={styles.settingRow}>
             <View style={styles.settingLabelContainer}>
-              <Bell color="#4F86E7" size={20} />
-              <Text style={styles.settingLabel}>Alarm Sound</Text>
+              <Bell color={colors.primary} size={20} />
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Alarm Sound
+              </Text>
             </View>
             <Switch
               value={settings.alarm_sound}
               onValueChange={(value) =>
                 handleToggleSetting("alarm_sound", value)
               }
-              trackColor={{ false: "#E1E8F0", true: "#97B4F0" }}
-              thumbColor={settings.alarm_sound ? "#4F86E7" : "#FFFFFF"}
+              trackColor={{ false: "#E1E8F0", true: colors.secondary }}
+              thumbColor={settings.alarm_sound ? colors.primary : "#FFFFFF"}
               disabled={!settings.daily_reminders}
             />
           </View>
         </View>
 
         {/* Writing Features Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Writing Features</Text>
+        <View style={[styles.section, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Writing Features
+          </Text>
 
           <View style={styles.settingRow}>
             <View style={styles.settingLabelContainer}>
-              <Share color="#4F86E7" size={20} />
-              <Text style={styles.settingLabel}>Diary Entry Prompts</Text>
+              <Share color={colors.primary} size={20} />
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Diary Entry Prompts
+              </Text>
             </View>
             <Switch
               value={settings.entry_prompts}
               onValueChange={(value) =>
                 handleToggleSetting("entry_prompts", value)
               }
-              trackColor={{ false: "#E1E8F0", true: "#97B4F0" }}
-              thumbColor={settings.entry_prompts ? "#4F86E7" : "#FFFFFF"}
+              trackColor={{ false: "#E1E8F0", true: colors.secondary }}
+              thumbColor={settings.entry_prompts ? colors.primary : "#FFFFFF"}
             />
           </View>
 
           <View style={styles.settingRow}>
             <View style={styles.settingLabelContainer}>
-              <Calendar color="#4F86E7" size={20} />
-              <Text style={styles.settingLabel}>"On This Day" Memories</Text>
+              <Calendar color={colors.primary} size={20} />
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                On This Day Memories
+              </Text>
             </View>
             <Switch
               value={settings.on_this_day}
               onValueChange={(value) =>
                 handleToggleSetting("on_this_day", value)
               }
-              trackColor={{ false: "#E1E8F0", true: "#97B4F0" }}
-              thumbColor={settings.on_this_day ? "#4F86E7" : "#FFFFFF"}
+              trackColor={{ false: "#E1E8F0", true: colors.secondary }}
+              thumbColor={settings.on_this_day ? colors.primary : "#FFFFFF"}
             />
           </View>
         </View>
 
         {/* Data Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Data</Text>
+        <View style={[styles.section, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Data
+          </Text>
 
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[
+              styles.actionButton,
+              { backgroundColor: colors.secondary + "40" },
+            ]}
             onPress={handleExportData}
           >
-            <Text style={styles.actionButtonText}>Export All Data</Text>
+            <Text style={[styles.actionButtonText, { color: colors.text }]}>
+              Export All Data
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[
+              styles.actionButton,
+              { backgroundColor: colors.secondary + "40" },
+            ]}
             onPress={handleMigrateImages}
             disabled={migrating}
           >
             <View style={styles.actionButtonContent}>
-              <Database color="#4F86E7" size={20} />
-              <Text style={styles.actionButtonText}>
+              <Database color={colors.primary} size={20} />
+              <Text
+                className="ml-2"
+                style={[styles.actionButtonText, { color: colors.text }]}
+              >
                 Optimize Image Storage
               </Text>
             </View>
-            {migrating && <ActivityIndicator size="small" color="#4F86E7" />}
+            {migrating && (
+              <ActivityIndicator size="small" color={colors.primary} />
+            )}
           </TouchableOpacity>
         </View>
 
         {/* Account Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
+        <View style={[styles.section, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Account
+          </Text>
 
           <TouchableOpacity
-            style={[styles.actionButton, styles.signOutButton]}
+            style={[
+              styles.actionButton,
+              styles.signOutButton,
+              { backgroundColor: "#FFF0F0" },
+            ]}
             onPress={handleSignOut}
           >
-            <LogOut color="#FF3333" size={20} />
-            <Text style={styles.signOutButtonText}>Sign Out</Text>
+            <LogOut color={colors.error} size={20} />
+            <Text style={[styles.signOutButtonText, { color: colors.error }]}>
+              Sign Out
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -378,6 +419,8 @@ const Settings = () => {
             mode="time"
             display="default"
             onChange={handleTimeChange}
+            accentColor={colors.primary}
+            textColor={colors.text}
           />
         )}
       </ScrollView>

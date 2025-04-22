@@ -16,6 +16,7 @@ import {
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/StyleContext";
 import {
   createDiaryEntry,
   updateDiaryEntry,
@@ -39,6 +40,7 @@ type DiaryEntryRouteProp = RouteProp<
 
 const DiaryEntryScreen = () => {
   const { user } = useAuth();
+  const { colors } = useTheme();
   const navigation = useNavigation();
   const route = useRoute<DiaryEntryRouteProp>();
   const isEditing = route.name === "EditEntry";
@@ -314,21 +316,29 @@ const DiaryEntryScreen = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidContainer}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={() => navigation.goBack()}
             disabled={loading}
           >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text
+              style={[styles.cancelButtonText, { color: colors.textLight }]}
+            >
+              Cancel
+            </Text>
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
             {isEditing ? "Edit Entry" : "New Entry"}
           </Text>
 
           <TouchableOpacity
-            style={[styles.saveButton, loading && styles.disabledButton]}
+            style={[
+              styles.saveButton,
+              { backgroundColor: colors.primary },
+              loading && styles.disabledButton,
+            ]}
             onPress={saveEntry}
             disabled={loading}
           >
@@ -360,7 +370,7 @@ const DiaryEntryScreen = () => {
             style={styles.dateButton}
             onPress={() => setShowDatePicker(true)}
           >
-            <Text style={styles.dateText}>
+            <Text style={[styles.dateText, { color: colors.primary }]}>
               {date.toLocaleDateString("en-US", {
                 weekday: "long",
                 year: "numeric",
@@ -377,6 +387,8 @@ const DiaryEntryScreen = () => {
               display="default"
               maximumDate={new Date()}
               onChange={onDateChange}
+              accentColor={colors.primary}
+              textColor={colors.text}
             />
           )}
 
@@ -392,14 +404,28 @@ const DiaryEntryScreen = () => {
             </View>
           ) : (
             <View style={styles.photoButtons}>
-              <TouchableOpacity style={styles.photoButton} onPress={takePhoto}>
-                <Camera color="#4F86E7" size={24} />
-                <Text style={styles.photoButtonText}>Take Photo</Text>
+              <TouchableOpacity
+                style={[styles.photoButton, { borderColor: colors.border }]}
+                onPress={takePhoto}
+              >
+                <Camera color={colors.primary} size={24} />
+                <Text
+                  style={[styles.photoButtonText, { color: colors.primary }]}
+                >
+                  Take Photo
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
-                <ImageIcon color="#4F86E7" size={24} />
-                <Text style={styles.photoButtonText}>Choose Photo</Text>
+              <TouchableOpacity
+                style={[styles.photoButton, { borderColor: colors.border }]}
+                onPress={pickImage}
+              >
+                <ImageIcon color={colors.primary} size={24} />
+                <Text
+                  style={[styles.photoButtonText, { color: colors.primary }]}
+                >
+                  Choose Photo
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -432,7 +458,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#E1E8F0",
   },
   headerTitle: {
     fontFamily: "Afacad",

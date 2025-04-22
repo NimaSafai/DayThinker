@@ -10,6 +10,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/StyleContext";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../../types/navigation";
@@ -24,6 +25,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const { signIn, loading, error } = useAuth();
   const navigation = useNavigation<LoginScreenNavigationProp>();
+  const { colors } = useTheme();
 
   const handleLogin = async () => {
     if (email && password) {
@@ -34,47 +36,67 @@ const Login = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>DayThink</Text>
-          <Text style={styles.subtitle}>Your daily journal companion</Text>
+          <Text style={[styles.mainTitle, { color: colors.primary }]}>
+            DayThink
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textLight }]}>
+            Your daily journal companion
+          </Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Login</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Login</Text>
 
         {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+          <View style={[styles.errorContainer, { backgroundColor: "#FFEEEE" }]}>
+            <Text style={[styles.errorText, { color: colors.error }]}>
+              {error}
+            </Text>
           </View>
         )}
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={[styles.label, { color: colors.textLight }]}>Email</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: colors.border, color: colors.text },
+            ]}
             placeholder="Enter your email"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
+            placeholderTextColor={colors.textLight + "80"}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
+          <Text style={[styles.label, { color: colors.textLight }]}>
+            Password
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: colors.border, color: colors.text },
+            ]}
             placeholder="Enter your password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            placeholderTextColor={colors.textLight + "80"}
           />
         </View>
 
         <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
+          style={[
+            styles.button,
+            { backgroundColor: colors.primary },
+            loading && styles.buttonDisabled,
+          ]}
           onPress={handleLogin}
           disabled={loading}
         >
@@ -86,9 +108,13 @@ const Login = () => {
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={[styles.footerText, { color: colors.textLight }]}>
+            Don't have an account?{" "}
+          </Text>
           <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-            <Text style={styles.footerLink}>Sign Up</Text>
+            <Text style={[styles.footerLink, { color: colors.primary }]}>
+              Sign Up
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -110,6 +136,13 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     alignItems: "center",
   },
+  mainTitle: {
+    fontFamily: "Afacad",
+    fontSize: 48,
+    fontWeight: "bold",
+    color: "#4F86E7",
+    marginBottom: 4,
+  },
   title: {
     fontFamily: "Afacad",
     fontSize: 28,
@@ -120,6 +153,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: "Afacad",
     color: "#777777",
+    textAlign: "center",
   },
   sectionTitle: {
     fontFamily: "Afacad",

@@ -8,8 +8,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  StyleSheet,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/StyleContext";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../../types/navigation";
@@ -27,6 +29,7 @@ const SignUp = () => {
   const [localError, setLocalError] = useState<string | null>(null);
   const { signUp, loading, error } = useAuth();
   const navigation = useNavigation<SignUpScreenNavigationProp>();
+  const { colors } = useTheme();
 
   // Add effect to show auth errors
   useEffect(() => {
@@ -94,168 +97,111 @@ const SignUp = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1, backgroundColor: "#F9FAFC" }}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <View
-        style={{ flex: 1, justifyContent: "center", paddingHorizontal: 24 }}
-      >
-        <View style={{ marginBottom: 32, alignItems: "center" }}>
-          <Text
-            style={{
-              fontFamily: "Afacad",
-              fontSize: 28,
-              fontWeight: "bold",
-              color: "#4F86E7",
-              marginBottom: 4,
-            }}
-          >
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={[styles.mainTitle, { color: colors.primary }]}>
             DayThink
           </Text>
-          <Text style={{ fontFamily: "Afacad", color: "#777777" }}>
+          <Text style={[styles.subtitle, { color: colors.textLight }]}>
             Your daily journal companion
           </Text>
         </View>
 
-        <Text
-          style={{
-            fontFamily: "Afacad",
-            fontSize: 24,
-            fontWeight: "600",
-            marginBottom: 24,
-          }}
-        >
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
           Create Account
         </Text>
 
         {displayError && (
-          <View
-            style={{
-              marginBottom: 16,
-              padding: 12,
-              backgroundColor: "#FFEEEE",
-              borderRadius: 8,
-            }}
-          >
-            <Text style={{ color: "#FF3333" }}>{displayError}</Text>
+          <View style={[styles.errorContainer, { backgroundColor: "#FFEEEE" }]}>
+            <Text style={[styles.errorText, { color: colors.error }]}>
+              {displayError}
+            </Text>
           </View>
         )}
 
-        <View style={{ marginBottom: 16 }}>
-          <Text
-            style={{ fontFamily: "Afacad", color: "#666666", marginBottom: 4 }}
-          >
-            Email
-          </Text>
+        <View style={styles.inputContainer}>
+          <Text style={[styles.label, { color: colors.textLight }]}>Email</Text>
           <TextInput
-            style={{
-              fontFamily: "Afacad",
-              padding: 12,
-              borderWidth: 1,
-              borderColor: "#E1E8F0",
-              borderRadius: 8,
-              backgroundColor: "white",
-            }}
+            style={[
+              styles.input,
+              { borderColor: colors.border, color: colors.text },
+            ]}
             placeholder="Enter your email"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
+            placeholderTextColor={colors.textLight + "80"}
           />
         </View>
 
-        <View style={{ marginBottom: 16 }}>
-          <Text
-            style={{ fontFamily: "Afacad", color: "#666666", marginBottom: 4 }}
-          >
+        <View style={styles.inputContainer}>
+          <Text style={[styles.label, { color: colors.textLight }]}>
             Password
           </Text>
           <TextInput
-            style={{
-              fontFamily: "Afacad",
-              padding: 12,
-              borderWidth: 1,
-              borderColor: "#E1E8F0",
-              borderRadius: 8,
-              backgroundColor: "white",
-            }}
+            style={[
+              styles.input,
+              { borderColor: colors.border, color: colors.text },
+            ]}
             placeholder="Enter your password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            placeholderTextColor={colors.textLight + "80"}
           />
         </View>
 
-        <View style={{ marginBottom: 24 }}>
-          <Text
-            style={{ fontFamily: "Afacad", color: "#666666", marginBottom: 4 }}
-          >
+        <View style={styles.inputContainer}>
+          <Text style={[styles.label, { color: colors.textLight }]}>
             Confirm Password
           </Text>
           <TextInput
-            style={{
-              fontFamily: "Afacad",
-              padding: 12,
-              borderWidth: 1,
-              borderColor: passwordError ? "#FF3333" : "#E1E8F0",
-              borderRadius: 8,
-              backgroundColor: "white",
-            }}
+            style={[
+              styles.input,
+              {
+                borderColor: passwordError ? colors.error : colors.border,
+                color: colors.text,
+              },
+            ]}
             placeholder="Confirm your password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
+            placeholderTextColor={colors.textLight + "80"}
           />
           {passwordError && (
-            <Text style={{ color: "#FF3333", marginTop: 4 }}>
+            <Text
+              style={[styles.errorText, { color: colors.error, marginTop: 4 }]}
+            >
               {passwordError}
             </Text>
           )}
         </View>
 
         <TouchableOpacity
-          style={{
-            padding: 12,
-            borderRadius: 8,
-            backgroundColor: loading ? "#AAAAAA" : "#4F86E7",
-            alignItems: "center",
-          }}
+          style={[
+            styles.button,
+            { backgroundColor: loading ? "#AAAAAA" : colors.primary },
+          ]}
           onPress={handleSignUp}
           disabled={loading}
         >
           {loading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text
-              style={{
-                fontFamily: "Afacad",
-                color: "white",
-                fontWeight: "600",
-                fontSize: 16,
-              }}
-            >
-              Sign Up
-            </Text>
+            <Text style={styles.buttonText}>Sign Up</Text>
           )}
         </TouchableOpacity>
 
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            marginTop: 24,
-          }}
-        >
-          <Text style={{ fontFamily: "Afacad", color: "#666666" }}>
+        <View style={styles.footer}>
+          <Text style={[styles.footerText, { color: colors.textLight }]}>
             Already have an account?{" "}
           </Text>
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-            <Text
-              style={{
-                fontFamily: "Afacad",
-                color: "#4F86E7",
-                fontWeight: "600",
-              }}
-            >
+            <Text style={[styles.footerLink, { color: colors.primary }]}>
               Log In
             </Text>
           </TouchableOpacity>
@@ -264,5 +210,90 @@ const SignUp = () => {
     </KeyboardAvoidingView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F9FAFC",
+  },
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  header: {
+    marginBottom: 32,
+    alignItems: "center",
+  },
+  mainTitle: {
+    fontFamily: "Afacad",
+    fontSize: 48,
+    fontWeight: "bold",
+    color: "#4F86E7",
+    marginBottom: 4,
+  },
+  title: {
+    fontFamily: "Afacad",
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontFamily: "Afacad",
+    textAlign: "center",
+  },
+  sectionTitle: {
+    fontFamily: "Afacad",
+    fontSize: 24,
+    fontWeight: "600",
+    marginBottom: 24,
+  },
+  errorContainer: {
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 8,
+  },
+  errorText: {
+    fontFamily: "Afacad",
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontFamily: "Afacad",
+    marginBottom: 4,
+  },
+  input: {
+    fontFamily: "Afacad",
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: "white",
+  },
+  button: {
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  buttonText: {
+    fontFamily: "Afacad",
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+  footerText: {
+    fontFamily: "Afacad",
+  },
+  footerLink: {
+    fontFamily: "Afacad",
+    fontWeight: "600",
+  },
+});
 
 export default SignUp;
