@@ -1,4 +1,4 @@
-# DayThink - Mobile Journaling App
+# DayThinker - Mobile Journaling App
 
 A clean, minimal, and user-friendly mobile journaling app built with React Native and Supabase.
 
@@ -83,6 +83,7 @@ A clean, minimal, and user-friendly mobile journaling app built with React Nativ
 - `content`: text
 - `created_at`: timestamp with time zone
 - `photo_url`: text (nullable)
+- `photo_url64`: text
 
 ### user_settings
 
