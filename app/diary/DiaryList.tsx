@@ -12,7 +12,6 @@ import {
 import { DiaryEntry } from "../../types";
 import { fetchDiaryEntries } from "../../utils/supabase";
 import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/StyleContext";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { DiaryStackParamList } from "../../types/navigation";
@@ -29,7 +28,6 @@ const DiaryList = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  const { colors } = useTheme();
   const navigation = useNavigation<DiaryListNavigationProp>();
 
   const screenWidth = Dimensions.get("window").width;
@@ -80,35 +78,27 @@ const DiaryList = () => {
   if (loading && !refreshing) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color="#4F86E7" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.primary }]}>
-          DayThinker
-        </Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>DayThinker</Text>
       </View>
 
       {error && (
-        <View style={[styles.errorContainer, { backgroundColor: "#FFEEEE" }]}>
-          <Text style={[styles.errorText, { color: colors.error }]}>
-            {error}
-          </Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
 
       {entries.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: colors.textLight }]}>
-            No journal entries yet
-          </Text>
-          <Text style={[styles.emptySubtext, { color: colors.textLight }]}>
+          <Text style={styles.emptyText}>No journal entries yet</Text>
+          <Text style={styles.emptySubtext}>
             Tap the + button to write your first entry
           </Text>
         </View>
@@ -120,11 +110,7 @@ const DiaryList = () => {
           numColumns={numColumns}
           contentContainerStyle={styles.list}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[colors.primary, colors.secondary]}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         />
       )}

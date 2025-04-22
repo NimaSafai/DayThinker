@@ -186,6 +186,7 @@ const SignUp = () => {
             styles.button,
             { backgroundColor: loading ? "#AAAAAA" : colors.primary },
           ]}
+          className="mt-10"
           onPress={handleSignUp}
           disabled={loading}
         >
@@ -214,12 +215,13 @@ const SignUp = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFC",
+    backgroundColor: "#FFE5D6",
   },
   content: {
     flex: 1,
     justifyContent: "center",
     paddingHorizontal: 24,
+    backgroundColor: "#FFE5D6",
   },
   header: {
     marginBottom: 32,

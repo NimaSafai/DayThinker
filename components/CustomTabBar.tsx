@@ -20,7 +20,7 @@ const AddButton = ({ onPress }: { onPress: () => void }) => {
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Plus color="white" size={24} />
+      <Plus color="white" size={36} />
     </TouchableOpacity>
   );
 };
@@ -129,9 +129,9 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: "#4F86E7", // This will be overridden by the inline style
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 80,
+    height: 80,
+    borderRadius: 48,
     justifyContent: "center",
     alignItems: "center",
     bottom: 25,

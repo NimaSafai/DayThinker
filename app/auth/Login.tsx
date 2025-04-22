@@ -48,7 +48,9 @@ const Login = () => {
           </Text>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Login</Text>
+        <Text style={[styles.sectionTitle, { color: colors.primary }]}>
+          Login
+        </Text>
 
         {error && (
           <View style={[styles.errorContainer, { backgroundColor: "#FFEEEE" }]}>
@@ -97,6 +99,7 @@ const Login = () => {
             { backgroundColor: colors.primary },
             loading && styles.buttonDisabled,
           ]}
+          className="mt-10"
           onPress={handleLogin}
           disabled={loading}
         >
@@ -125,12 +128,13 @@ const Login = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFC",
+    backgroundColor: "#FFE5D6",
   },
   content: {
     flex: 1,
     justifyContent: "center",
     paddingHorizontal: 24,
+    backgroundColor: "#FFE5D6",
   },
   header: {
     marginBottom: 32,
