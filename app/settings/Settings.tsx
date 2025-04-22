@@ -9,12 +9,25 @@ import {
   ActivityIndicator,
   Alert,
   SafeAreaView,
+  Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { fetchUserSettings, updateUserSettings } from "../../utils/supabase";
-import DatePicker from "react-native-date-picker";
+import {
+  fetchUserSettings,
+  updateUserSettings,
+  migrateImagesToStorage,
+  createStorageBucket,
+} from "../../utils/supabase";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { UserSettings } from "../../types";
-import { LogOut, Clock, Bell, Share, Calendar } from "lucide-react-native";
+import {
+  LogOut,
+  Clock,
+  Bell,
+  Share,
+  Calendar,
+  Database,
+} from "lucide-react-native";
 
 const Settings = () => {
   const { user, signOut } = useAuth();
@@ -29,6 +42,8 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tempDate, setTempDate] = useState(new Date());
+  const [migrating, setMigrating] = useState(false);
 
   // Load user settings
   useEffect(() => {
@@ -91,29 +106,16 @@ const Settings = () => {
     }
   };
 
-  const handleTimeChange = async (time: Date) => {
-    if (!user) return;
-
-    setShowTimePicker(false);
-
-    // Update UI immediately
-    setSettings({
-      ...settings,
-      reminder_time: time.toISOString(),
-    });
-
-    // Then save to backend
-    try {
-      setSaving(true);
-      await updateUserSettings(user.id, { reminder_time: time.toISOString() });
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError("Failed to update reminder time");
-      }
-    } finally {
-      setSaving(false);
+  const handleTimeChange = (event: any, selectedDate?: Date) => {
+    setShowTimePicker(Platform.OS === "ios");
+    if (selectedDate) {
+      setTempDate(selectedDate);
+      const newSettings = {
+        ...settings,
+        reminder_time: selectedDate.toISOString(),
+      };
+      setSettings(newSettings);
+      saveSettings(newSettings);
     }
   };
 
@@ -142,6 +144,78 @@ const Settings = () => {
       minute: "2-digit",
       hour12: true,
     });
+  };
+
+  const saveSettings = async (newSettings: Partial<UserSettings>) => {
+    if (!user) return;
+
+    try {
+      setSaving(true);
+      await updateUserSettings(user.id, newSettings);
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError("Failed to update settings");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleMigrateImages = async () => {
+    if (!user) return;
+
+    Alert.alert(
+      "Migrate Images",
+      "This will attempt to move any images stored in the database to the cloud storage. This may use data and take some time. Continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Continue",
+          onPress: async () => {
+            try {
+              setMigrating(true);
+              setError(null);
+
+              // First ensure the bucket exists
+              await createStorageBucket();
+
+              // Run the migration
+              const result = await migrateImagesToStorage(user.id);
+
+              if (result.success) {
+                if (result.migrated === 0) {
+                  Alert.alert(
+                    "Migration Complete",
+                    "No images needed migration."
+                  );
+                } else {
+                  Alert.alert(
+                    "Migration Complete",
+                    `Successfully migrated ${result.migrated} of ${result.total} images.`
+                  );
+                }
+              } else {
+                throw new Error(result.error || "Migration failed");
+              }
+            } catch (e) {
+              if (e instanceof Error) {
+                setError(e.message);
+              } else {
+                setError("Failed to migrate images");
+              }
+              Alert.alert(
+                "Migration Failed",
+                "There was an error migrating your images. Please try again later."
+              );
+            } finally {
+              setMigrating(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
@@ -261,6 +335,20 @@ const Settings = () => {
           >
             <Text style={styles.actionButtonText}>Export All Data</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleMigrateImages}
+            disabled={migrating}
+          >
+            <View style={styles.actionButtonContent}>
+              <Database color="#4F86E7" size={20} />
+              <Text style={styles.actionButtonText}>
+                Optimize Image Storage
+              </Text>
+            </View>
+            {migrating && <ActivityIndicator size="small" color="#4F86E7" />}
+          </TouchableOpacity>
         </View>
 
         {/* Account Section */}
@@ -280,18 +368,18 @@ const Settings = () => {
           <Text style={styles.versionText}>DayThink v1.0.0</Text>
         </View>
 
-        <DatePicker
-          modal
-          open={showTimePicker}
-          date={
-            settings.reminder_time
-              ? new Date(settings.reminder_time)
-              : new Date()
-          }
-          mode="time"
-          onConfirm={handleTimeChange}
-          onCancel={() => setShowTimePicker(false)}
-        />
+        {showTimePicker && (
+          <DateTimePicker
+            value={
+              settings.reminder_time
+                ? new Date(settings.reminder_time)
+                : new Date()
+            }
+            mode="time"
+            display="default"
+            onChange={handleTimeChange}
+          />
+        )}
       </ScrollView>
 
       {saving && (
@@ -428,6 +516,10 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad",
     color: "white",
     marginLeft: 8,
+  },
+  actionButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 });
 

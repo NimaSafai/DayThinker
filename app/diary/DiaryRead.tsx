@@ -37,6 +37,18 @@ const DiaryRead = ({ route }: DiaryReadProps) => {
     });
   };
 
+  // Determine the image source based on what's available
+  const getImageSource = () => {
+    if (entry.photo_url) {
+      return { uri: entry.photo_url };
+    } else if (entry.photo_base64) {
+      return { uri: entry.photo_base64 };
+    }
+    return null;
+  };
+
+  const imageSource = getImageSource();
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -57,10 +69,10 @@ const DiaryRead = ({ route }: DiaryReadProps) => {
         <Text style={styles.title}>{entry.title}</Text>
         <Text style={styles.date}>{formatDate(entry.created_at)}</Text>
 
-        {entry.photo_url && (
+        {imageSource && (
           <View style={styles.imageContainer}>
             <Image
-              source={{ uri: entry.photo_url }}
+              source={imageSource}
               style={styles.image}
               resizeMode="cover"
             />

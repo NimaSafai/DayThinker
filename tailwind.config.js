@@ -5,17 +5,18 @@ module.exports = {
     "./app/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
   ],
+  presets: [require("nativewind/preset")],
   theme: {
     extend: {
       fontFamily: {
         afacad: ["Afacad"],
       },
       colors: {
-        primary: "#4F86E7",
-        secondary: "#97B4F0",
+        primary: "#224D11",
+        secondary: "#88B377",
         background: "#F9FAFC",
         card: "#FFFFFF",
-        text: "#333333",
+        text: "#1C330C",
         border: "#E1E8F0",
         success: "#4BB543",
         error: "#FF3333",

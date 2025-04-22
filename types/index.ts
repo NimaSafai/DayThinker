@@ -13,6 +13,7 @@ export interface DiaryEntry {
   created_at: string;
   user_id: string;
   photo_url?: string;
+  photo_base64?: string;
 }
 
 // Settings type

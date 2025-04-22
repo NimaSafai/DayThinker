@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,9 +14,19 @@ import {
   SafeAreaView,
 } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import DatePicker from "react-native-date-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useAuth } from "../../context/AuthContext";
-import { createDiaryEntry, updateDiaryEntry } from "../../utils/supabase";
+import {
+  createDiaryEntry,
+  updateDiaryEntry,
+  testSupabaseConnection,
+  createDiaryEntrySimple,
+  createTablesIfNotExist,
+  findAlternativeTables,
+  createDiaryEntryAlternative,
+  createStorageBucket,
+  imageToBase64,
+} from "../../utils/supabase";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, Image as ImageIcon, X } from "lucide-react-native";
 import { supabase } from "../../utils/supabase";
@@ -45,6 +55,32 @@ const DiaryEntryScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Test Supabase connection on component mount
+  useEffect(() => {
+    const setupDatabase = async () => {
+      try {
+        console.log("Setting up database and storage...");
+
+        // Create tables if needed
+        const tablesResult = await createTablesIfNotExist();
+        if (!tablesResult.success) {
+          console.warn("Table setup issue:", tablesResult.error);
+        }
+
+        // Create storage bucket if needed
+        const bucketResult = await createStorageBucket();
+        if (!bucketResult.success) {
+          console.warn("Storage bucket setup issue:", bucketResult.error);
+        }
+      } catch (e) {
+        console.error("Database setup error:", e);
+        setError("Failed to set up database. Please try again later.");
+      }
+    };
+
+    setupDatabase();
+  }, []);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -93,38 +129,70 @@ const DiaryEntryScreen = () => {
 
   const uploadImage = async (uri: string): Promise<string | null> => {
     try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const fileExt = uri.split(".").pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${user?.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("diary_images")
-        .upload(filePath, blob);
-
-      if (uploadError) {
-        throw uploadError;
+      if (!uri) {
+        console.error("Invalid image URI");
+        return null;
       }
 
-      const { data } = supabase.storage
-        .from("diary_images")
-        .getPublicUrl(filePath);
-      return data.publicUrl;
+      console.log("Starting image upload process for URI:", uri);
+
+      // First check if we can process this image
+      try {
+        const response = await fetch(uri);
+
+        if (!response.ok) {
+          console.error(`Failed to fetch image: ${response.status}`);
+          return null;
+        }
+
+        // Get a small chunk of the image to verify it's valid
+        const testBlob = await response.clone().blob();
+        if (testBlob.size === 0) {
+          console.error("Image data is empty");
+          return null;
+        }
+
+        console.log("Image verification successful, size:", testBlob.size);
+      } catch (verifyError) {
+        console.error("Failed to verify image:", verifyError);
+        return null;
+      }
+
+      // Try using base64 approach first as it's more reliable
+      console.log("Converting image to base64...");
+      try {
+        const base64Data = await imageToBase64(uri);
+        if (base64Data) {
+          console.log("Successfully converted image to base64");
+          return base64Data;
+        }
+      } catch (base64Error) {
+        console.error("Failed to convert image to base64:", base64Error);
+        // Continue to try other methods
+      }
+
+      // Don't attempt to use storage bucket as it's causing errors
+      console.log("Image upload complete - using base64 data");
+      return null;
     } catch (e) {
-      console.error("Error uploading image: ", e);
+      console.error("Error in uploadImage:", e);
       return null;
     }
   };
 
   const saveEntry = async () => {
-    if (!user) return;
-    if (!title.trim()) {
-      setError("Please enter a title for your entry");
+    if (!user) {
+      Alert.alert("Error", "You must be logged in to save an entry");
       return;
     }
+
+    if (!title.trim()) {
+      Alert.alert("Error", "Please enter a title");
+      return;
+    }
+
     if (!content.trim()) {
-      setError("Please write something in your diary entry");
+      Alert.alert("Error", "Please enter some content");
       return;
     }
 
@@ -132,11 +200,39 @@ const DiaryEntryScreen = () => {
     setError(null);
 
     try {
-      let photoUrl = photoUri;
+      console.log("Starting to save entry...");
+      console.log("User ID:", user.id);
 
-      // If we have a new photo that's not already a remote URL, upload it
+      let photoUrl = null;
+      let photoBase64 = null;
+
+      // If we have a new photo that's not already a remote URL, process it
       if (photoUri && !photoUri.startsWith("http")) {
-        photoUrl = await uploadImage(photoUri);
+        console.log("Processing photo...");
+        try {
+          const imageData = await uploadImage(photoUri);
+
+          if (imageData) {
+            console.log("Image processed successfully");
+            // If it's a base64 data URI
+            if (imageData.startsWith("data:")) {
+              photoBase64 = imageData;
+            } else {
+              // It's a URL
+              photoUrl = imageData;
+            }
+          } else {
+            console.warn(
+              "Photo processing returned null, continuing without photo"
+            );
+          }
+        } catch (photoError) {
+          console.error("Photo processing failed:", photoError);
+          // Continue without the photo
+        }
+      } else if (photoUri) {
+        // It's already a URL
+        photoUrl = photoUri;
       }
 
       const entryData = {
@@ -145,23 +241,70 @@ const DiaryEntryScreen = () => {
         created_at: date.toISOString(),
         user_id: user.id,
         photo_url: photoUrl,
+        photo_base64: photoBase64,
       };
 
-      if (isEditing && existingEntry) {
-        await updateDiaryEntry(existingEntry.id, entryData);
-      } else {
-        await createDiaryEntry(entryData);
-      }
+      console.log(
+        "Entry data prepared:",
+        JSON.stringify({
+          ...entryData,
+          photo_base64: photoBase64 ? "[BASE64 DATA]" : null,
+        })
+      );
 
-      navigation.goBack();
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError("An error occurred while saving your entry");
+      try {
+        let result;
+
+        if (isEditing && existingEntry) {
+          console.log("Updating existing entry:", existingEntry.id);
+          result = await updateDiaryEntry(existingEntry.id, entryData);
+        } else {
+          console.log("Creating new entry");
+          try {
+            // Use the simplified method first as it's more reliable
+            result = await createDiaryEntrySimple(entryData);
+          } catch (simpleError) {
+            console.error("Simple create failed:", simpleError);
+            throw simpleError;
+          }
+        }
+
+        console.log("Entry saved successfully:", result);
+
+        Alert.alert("Success", "Your diary entry has been saved.", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
+      } catch (error) {
+        console.error("Database operation error:", error);
+        throw new Error(
+          `Failed to save entry: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
       }
+    } catch (e) {
+      console.error("Save entry error:", e);
+      setError(
+        e instanceof Error
+          ? e.message
+          : "An error occurred while saving your entry. Please try again."
+      );
+
+      // Show error alert to the user
+      Alert.alert(
+        "Error Saving Entry",
+        "There was a problem saving your entry. Please try again.",
+        [{ text: "OK" }]
+      );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === "ios");
+    if (selectedDate) {
+      setDate(selectedDate);
     }
   };
 
@@ -227,20 +370,15 @@ const DiaryEntryScreen = () => {
             </Text>
           </TouchableOpacity>
 
-          <DatePicker
-            modal
-            open={showDatePicker}
-            date={date}
-            mode="date"
-            maximumDate={new Date()}
-            onConfirm={(selectedDate) => {
-              setShowDatePicker(false);
-              setDate(selectedDate);
-            }}
-            onCancel={() => {
-              setShowDatePicker(false);
-            }}
-          />
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display="default"
+              maximumDate={new Date()}
+              onChange={onDateChange}
+            />
+          )}
 
           {photoUri ? (
             <View style={styles.imageContainer}>

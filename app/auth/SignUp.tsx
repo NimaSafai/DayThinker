@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   TextInput,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
@@ -23,19 +24,72 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
   const { signUp, loading, error } = useAuth();
   const navigation = useNavigation<SignUpScreenNavigationProp>();
 
+  // Add effect to show auth errors
+  useEffect(() => {
+    if (error) {
+      console.log("Auth Error in SignUp:", error);
+      setLocalError(error);
+    }
+  }, [error]);
+
   const handleSignUp = async () => {
+    console.log("SignUp pressed with:", { email, password });
     setPasswordError(null);
+    setLocalError(null);
+
+    // Validate email
+    if (!email || !email.includes("@")) {
+      setLocalError("Please enter a valid email address");
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      setLocalError("Password must be at least 6 characters");
+      return;
+    }
+
+    // Check password match
     if (password !== confirmPassword) {
       setPasswordError("Passwords do not match");
       return;
     }
-    if (email && password) {
+
+    try {
+      console.log("Calling signUp with:", email);
       await signUp(email, password);
+      console.log("SignUp completed, checking for errors");
+
+      // If we get here without error and there's no error from auth context
+      // Show a success message and redirect to login
+      if (!error) {
+        Alert.alert(
+          "Verification Email Sent",
+          "Please check your email to verify your account before logging in.",
+          [
+            {
+              text: "OK",
+              onPress: () => navigation.navigate("Login"),
+            },
+          ]
+        );
+      }
+    } catch (e) {
+      console.error("Error in handleSignUp:", e);
+      if (e instanceof Error) {
+        setLocalError(e.message);
+      } else {
+        setLocalError("An unexpected error occurred");
+      }
     }
   };
+
+  // Display either local error or error from auth context
+  const displayError = localError || error;
 
   return (
     <KeyboardAvoidingView
@@ -73,7 +127,7 @@ const SignUp = () => {
           Create Account
         </Text>
 
-        {error && (
+        {displayError && (
           <View
             style={{
               marginBottom: 16,
@@ -82,7 +136,7 @@ const SignUp = () => {
               borderRadius: 8,
             }}
           >
-            <Text style={{ color: "#FF3333" }}>{error}</Text>
+            <Text style={{ color: "#FF3333" }}>{displayError}</Text>
           </View>
         )}
 

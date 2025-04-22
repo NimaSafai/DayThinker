@@ -15,12 +15,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Check for user on mount
   useEffect(() => {
+    let isMounted = true;
+
     const checkUser = async () => {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        if (session?.user) {
+
+        if (session?.user && isMounted) {
           setUser({
             id: session.user.id,
             email: session.user.email || "",
@@ -28,13 +31,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           });
         }
       } catch (e) {
-        if (e instanceof Error) {
+        if (e instanceof Error && isMounted) {
           setError(e.message);
-        } else {
+        } else if (isMounted) {
           setError("An unknown error occurred");
         }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -57,18 +62,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     );
 
     return () => {
+      isMounted = false;
       authListener.subscription.unsubscribe();
     };
   }, []);
 
   // Sign up function
   const signUp = async (email: string, password: string) => {
+    console.log("AuthContext: signUp called with email:", email);
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) throw error;
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: "dayThink://login",
+        },
+      });
+
+      if (signUpError) {
+        console.error("Supabase signUp error:", signUpError);
+        throw signUpError;
+      }
+
+      console.log("SignUp response:", {
+        user: data?.user ? "User exists" : "No user",
+        session: data?.session ? "Session exists" : "No session",
+      });
+
+      // If successful but no session, it means email confirmation is required
+      if (!data?.session) {
+        setError("Please check your email to confirm your account");
+      }
     } catch (e) {
+      console.error("Error during sign up:", e);
       if (e instanceof Error) {
         setError(e.message);
       } else {
